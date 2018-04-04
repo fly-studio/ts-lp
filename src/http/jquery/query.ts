@@ -44,8 +44,8 @@ namespace LP.http {
 					success: function (json: TJson, textStatus: JQuery.Ajax.SuccessTextStatus, jqXHR: JQuery.jqXHR<any>) {
 						resolve(json);
 					},
-					error: function (XMLHttpRequest: any, textStatus: string, errorThrown: any) {
-						reject(arguments);
+					error: function (XMLHttpRequest: JQuery.jqXHR, textStatus: JQuery.Ajax.ErrorTextStatus, errorThrown: string) {
+						reject([].slice.call(arguments));
 					}
 				};
 				if (typeof _headers['Authorization'] != 'undefined')
@@ -85,18 +85,27 @@ namespace LP.http {
 		{
 			if (e instanceof Array)
 			{
-				let textStatus = e[1];
+				let xhr: JQuery.jqXHR = e[0];
+				let textStatus: JQuery.Ajax.ErrorTextStatus = e[1];
 				switch (textStatus) {
 					case 'timeout':
 						LP.tip.toast(QUERY_LANGUAGE.network_timeout);
 						break;
 					case 'error':
-						break;
-					case 'notmodified':
+						if (xhr instanceof Object && typeof xhr.responseJSON != 'undefined')
+						{
+							let json = xhr.responseJSON;
+							if (json instanceof Object && typeof json.result != 'undefined')
+							{
+								LP.tip.json(json.result, json.message, json.tipType);
+							}
+						}
 						break;
 					case 'parsererror':
 						LP.tip.toast(QUERY_LANGUAGE.parser_error);
 						break;
+					//case 'notmodified':
+					case 'abort':
 					default:
 						LP.tip.toast(QUERY_LANGUAGE.server_error);
 						break;
