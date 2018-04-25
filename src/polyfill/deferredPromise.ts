@@ -51,7 +51,12 @@ if (!Promise.prototype.finally)
 }
 
 function promiseWrap(callback: Function, ...args: any[]): Promise<any> {
-	return new Promise(r => r()).then(() => {
-		return callback(...args);
-	});
+	return Promise.resolve(callback.call(this, ...args));
+}
+/**
+ * only one parameter
+ * @param args
+ */
+function promiseReject(args?: any): Promise<any> {
+	return Promise.reject(args);
 }

@@ -1,7 +1,7 @@
 if (jQuery)
 {
 	jQuery.fn.extend({
-		query: function (callback: Function| string, autoTip: boolean = true) {
+		query: function (callback: Function | string, tipMask: number = LP.http.TIP_MASK.ALERT_ALL) {
 
 			return (this as JQuery).each(function() {
 
@@ -51,7 +51,7 @@ if (jQuery)
 
 						}); //disabled the submit button
 
-						return (new LP.http.jQueryAjax()).setAutoTip(autoTip).request(method, url, $selector.serializeArray()).then(json => {
+						return LP.http.jQueryAjax.getInstance().alertMask(tipMask).request(method, url, $selector.serializeArray()).then(json => {
 
 							if (typeof callback != 'undefined' && jQuery.isFunction(callback))
 								callback.call($this, json);

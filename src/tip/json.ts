@@ -6,7 +6,7 @@ namespace LP.tip {
 
 	export let diy_interface: TInterface | null = null;
 
-	function diy(message: http.TMessage | string, result: string, tipType: http.TTipType)
+	function diy(message: http.TMessage | string, result: string, tipType: http.TTipType): Promise<any>
 	{
 		let _message = formatMessage(message);
 
@@ -18,7 +18,8 @@ namespace LP.tip {
 		});
 	}
 
-	export function json(result: string, message: string | http.TMessage, tipType: http.TTipType) {
+	export function json(result: string, message: string | http.TMessage, tipType: http.TTipType): void
+	{
 		if (typeof message == 'undefined' || typeof tipType != 'object') return;
 		else if (typeof message == 'string') message = { content: message };
 

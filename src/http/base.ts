@@ -28,6 +28,14 @@ namespace LP.http {
 		headers: Object,
 	}
 
+	export enum TIP_MASK {
+		ALERT_CLIENT_ERROR = 1,
+		ALERT_SERVER_ERROR = 2,
+		ALERT_SUCCESS = 4,
+		ALERT_ERROR = ALERT_CLIENT_ERROR | ALERT_SERVER_ERROR,
+		ALERT_ALL = ALERT_CLIENT_ERROR | ALERT_SERVER_ERROR | ALERT_SUCCESS,
+	}
+
 	export function objectToForm(data: Object): FormData {
 		let formData: FormData;
 		if (data instanceof FormData)
@@ -44,7 +52,7 @@ namespace LP.http {
 		protected commonHeaders: any;
 		protected headers: any;
 		protected config: any;
-		public autoTip: boolean = false;
+		protected tipMask: number = 0;
 		protected encryptor: LP.sec.Encryptor;
 
 		constructor()
@@ -56,11 +64,58 @@ namespace LP.http {
 				'X-RSA': encodeURIComponent(this.encryptor.getPublicKey()),
 			};
 			this.headers = {};
+			this.tipMask = 0;
 		}
 
-		public setAutoTip(autoTip: boolean): Base
+		public static getInstance(): Base {
+			return new this;
+		}
+
+		public alertMask(mask: number): this
 		{
-			this.autoTip = autoTip;
+			this.tipMask |= mask;
+			return this;
+		}
+
+		public alertAll(tip: boolean = true): this
+		{
+			this.tipMask = tip ? TIP_MASK.ALERT_ALL : 0;
+			return this;
+		}
+
+		public alertClientError(tip: boolean = true): this
+		{
+			if (tip)
+				this.tipMask |= TIP_MASK.ALERT_CLIENT_ERROR;
+			else
+				this.tipMask ^= TIP_MASK.ALERT_CLIENT_ERROR;
+			return this;
+		}
+
+		public alertServerError(tip: boolean = true): this
+		{
+			if (tip)
+				this.tipMask |= TIP_MASK.ALERT_SERVER_ERROR;
+			else
+				this.tipMask ^= TIP_MASK.ALERT_SERVER_ERROR;
+			return this;
+		}
+
+		public alertError(tip: boolean = true): this
+		{
+			if (tip)
+				this.tipMask |= TIP_MASK.ALERT_ERROR;
+			else
+				this.tipMask ^= TIP_MASK.ALERT_ERROR;
+			return this;
+		}
+
+		public alertSuccess(tip: boolean = true): this
+		{
+			if (tip)
+				this.tipMask |= TIP_MASK.ALERT_SUCCESS;
+			else
+				this.tipMask ^= TIP_MASK.ALERT_SUCCESS;
 			return this;
 		}
 
@@ -70,9 +125,9 @@ namespace LP.http {
 			return dom ? dom.getAttribute('content') as string : '';
 		}
 
-		public setHeader(kv: Object): Base;
-		public setHeader(key: string, value: string): Base;
-		public setHeader(key: string | Object, value?: string): Base {
+		public setHeader(kv: Object): this;
+		public setHeader(key: string, value: string): this;
+		public setHeader(key: string | Object, value?: string): this {
 			if (value == null)
 				this.headers = key;
 			else
@@ -81,7 +136,7 @@ namespace LP.http {
 			return this;
 		}
 
-		public setConfig(key: string, value: string): Base {
+		public setConfig(key: string, value: string): this {
 			let obj: any = this.config,
 				keys = key.split('.');
 
@@ -110,20 +165,23 @@ namespace LP.http {
 				{
 					if (json.result == 'success' || json.result == 'api')
 					{
-						if (this.autoTip)
+						if (this.tipMask & TIP_MASK.ALERT_SUCCESS)
 							this.errorHandler(json);
 						return json;
 					}
 					else
 					{
-						throw json;
+						return promiseReject(json);
 					}
 				}
 				return json;
 			}).catch(e => {
-				if (this.autoTip)
+				if ((this.tipMask & TIP_MASK.ALERT_SERVER_ERROR) && e instanceof Object && typeof e.result != 'undefined')
 					this.errorHandler(e);
-				throw e;
+				else if ((this.tipMask & TIP_MASK.ALERT_CLIENT_ERROR) && typeof e['result'] == 'undefined')
+					this.errorHandler(e);
+
+				return promiseReject(e);
 			});
 		}
 

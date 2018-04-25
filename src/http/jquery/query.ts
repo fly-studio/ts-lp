@@ -12,7 +12,7 @@ namespace LP.http {
 			});
 		}
 
-		public setConfig(key: string, value: string): jQueryAjax
+		public setConfig(key: string, value: string): this
 		{
 			return this;
 		}

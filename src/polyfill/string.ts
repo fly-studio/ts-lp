@@ -1,6 +1,7 @@
 declare interface String {
 	noHTML(): string;
 	toHTML(): string;
+	toPre(): string;
 }
 
 if (!String.prototype.noHTML)
@@ -28,5 +29,20 @@ if (!String.prototype.toHTML){
  */
 String.prototype.toHTML = function (): string {
 	return this.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#039;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+};
+}
+
+if (!String.prototype.toPre) {
+/**
+ * 转义字符串的空格、回车、制表符，也就是将textarea输入的文本可以原样显示到屏幕
+ * 类似于<pre>标签
+ *
+ * var str = " 空格\n第\t二行".toPre();
+ * 返回 '&nbsp;空格<br />第&nbsp;&nbsp;&nbsp;&nbsp;二行'
+ *
+ * @return {String}
+ */
+String.prototype.toPre = function () {
+	return this.replace(/\040/g, '&nbsp;').replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
 };
 }

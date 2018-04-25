@@ -40,10 +40,9 @@ namespace LP.tip {
 			else
 				window.alert(_message.content.noHTML());
 		}).then(() => {
-			if (confirm_callback && typeof confirm_callback == 'function') confirm_callback.call(void 0);
+			if (confirm_callback && typeof confirm_callback == 'function') return confirm_callback.call(void 0);
 		});
 	}
-
 
 	export function confirm(message: TMessage | string, confirm_callback?: Function, cancel_callback?: Function): Promise<any>
 	{
@@ -55,15 +54,14 @@ namespace LP.tip {
 			else
 			{
 				if (!window.confirm(_message.content.noHTML()))
-					throw '';
+					return promiseReject();
 			}
 		}).then(() => {
-			if (confirm_callback && typeof confirm_callback == 'function') confirm_callback.call(void 0);
-		}, () => {
-			if (cancel_callback && typeof cancel_callback == 'function') cancel_callback.call(void 0);
+			if (confirm_callback && typeof confirm_callback == 'function') return confirm_callback.call(void 0);
+		}, e => {
+			return promiseReject.call(void 0, cancel_callback && typeof cancel_callback == 'function' ? cancel_callback.call(void 0) : e);
 		});
 	}
-
 
 	export function prompt(message: TMessage | string, confirm_callback?: Function, cancel_callback?: Function): Promise<any>
 	{
@@ -76,14 +74,14 @@ namespace LP.tip {
 			{
 				let v: string | null = window.prompt(_message.content.noHTML());
 				if (!v)
-					throw '';
+					return promiseReject();
 				else
 					return v;
 			}
 		}).then(v => {
-			if (confirm_callback && typeof confirm_callback == 'function') confirm_callback.call(void 0, v);
-		}, () => {
-			if (cancel_callback && typeof cancel_callback == 'function') cancel_callback.call(void 0);
+			if (confirm_callback && typeof confirm_callback == 'function') return confirm_callback.call(void 0, v);
+		}, e => {
+			return promiseReject.call(void 0, cancel_callback && typeof cancel_callback == 'function' ? cancel_callback.call(void 0) : e);
 		});
 	}
 
