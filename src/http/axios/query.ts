@@ -38,14 +38,17 @@ namespace LP.http {
 			let params = config.method.toLowerCase() == 'get' ? config.data : {};
 			if (config.method.toLowerCase() == 'get')
 				config.data = null;
-
-			return this.instance.request({
+			let c: AxiosRequestConfig = {
 				method: config.method.toLowerCase(),
 				url: config.url,
 				params: params,
 				data: config.data,
 				headers: config.headers
-			});
+			};
+
+			let _c = extend(true, {}, c, extra);
+
+			return this.instance.request(_c);
 		}
 
 		protected decryptHandler(): void
@@ -55,11 +58,14 @@ namespace LP.http {
 				function (data) {
 
 					let json = data;
+					try {
 
-					json = t.encryptor.decrypt(json);
+						json = t.encryptor.decrypt(json);
+						data = json;
 
-					data = json;
-
+					} catch (e) {
+						console.log(e);
+					}
 					return data;
 				}
 			];

@@ -12,11 +12,6 @@ namespace LP.http {
 			});
 		}
 
-		public setConfig(key: string, value: string): this
-		{
-			return this;
-		}
-
 		protected requestHandler(config: TRequestConfig, extra: any): Promise<any>
 		{
 			let _headers: JQuery.PlainObject = config.headers,
@@ -32,7 +27,7 @@ namespace LP.http {
 				_headers['X-CSRF-TOKEN'] = _data._token;
 
 			return new Promise((resolve, reject) => {
-				let c = {
+				let c: JQuery.AjaxSettings = {
 					url: config.url,
 					data: _data ? _data : null,
 					async: true,
@@ -40,6 +35,7 @@ namespace LP.http {
 					type: config.method.toUpperCase(),
 					method: config.method.toUpperCase(),
 					headers: _headers,
+					processData: _data instanceof FormData ? false : true,
 					dataType: /[\?&](jsonp|callback)=\?/i.test(config.url) ? 'jsonp' : 'json',
 					success: function (json: TJson, textStatus: JQuery.Ajax.SuccessTextStatus, jqXHR: JQuery.jqXHR<any>) {
 						resolve(json);
@@ -48,14 +44,23 @@ namespace LP.http {
 						reject([].slice.call(arguments));
 					}
 				};
-				if (typeof _headers['Authorization'] != 'undefined')
-				{
-					c['beforeSend'] = function(xhr: XMLHttpRequest)
-					{
+
+				let _c = extend(true, {}, c, extra);
+
+				_c['beforeSend'] = function(xhr: XMLHttpRequest) {
+					if (typeof _headers['Authorization'] != 'undefined')
 						xhr.setRequestHeader('Authorization', _headers['Authorization']);
-					}
+					if (_c.processData === false && xhr.overrideMimeType)
+						xhr.overrideMimeType("multipart/form-data");
 				}
-				jQuery.ajax(c);
+				if (_c.processData === false)
+				{
+					_c['enctype'] = 'multipart/form-data';
+					_c['contentType'] = false;
+					_c['mimeType'] = 'multipart/form-data';
+				}
+
+				jQuery.ajax(_c);
 			});
 		}
 
@@ -66,14 +71,16 @@ namespace LP.http {
 				dataFilter(data: any, type: string) {
 
 					if (type.toLowerCase() == 'json') {
+						let json : any;
+						try {
+							json = jQuery.parseJSON(data);
+							json = t.encryptor.decrypt(json);
+							data = JSON.stringify(json);
+							if (typeof json.debug != 'undefined' && !!json.debug) console.log(json);
 
-						let json = jQuery.parseJSON(data);
-
-						json = t.encryptor.decrypt(json);
-
-						data = JSON.stringify(json);
-
-						if (typeof json.debug != 'undefined' && !!json.debug) console.log(json);
+						} catch (e) {
+							console.log(e);
+						}
 					}
 
 					return data;
@@ -129,7 +136,17 @@ namespace LP.http {
 
 		public static form(url: string, $form: JQuery): Promise<any> {
 			let q: jQueryAjax = new jQueryAjax();
-			return q.request($form.attr('method')!, $form.attr('action')!, $form.serializeArray());
+			let data: JQuery.NameValuePair[] | FormData = $form.serializeArray();
+			let $files = jQuery('input[type="file"]:not([name=""])', $form); // all files
+			if ($form.is('[enctype="multipart/form-data"]') || $files.length > 0) {
+				let _formData = new FormData();
+				data.forEach(v => _formData.append(v.name, v.value));
+				$files.each(function () {
+					jQuery.each((this as HTMLInputElement).files, (i, file) => _formData.append(jQuery(this).attr('name')!, file));
+				});
+				data = _formData;
+			}
+			return q.request($form.attr('method')!, $form.attr('action')!, data);
 		}
 
 		public static head(url: string, data?: any): Promise<any> {

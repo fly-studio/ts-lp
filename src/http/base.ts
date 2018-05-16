@@ -136,7 +136,7 @@ namespace LP.http {
 			return this;
 		}
 
-		public setConfig(key: string, value: string): this {
+		public setConfig(key: string, value: any): this {
 			let obj: any = this.config,
 				keys = key.split('.');
 
