@@ -71,11 +71,14 @@ namespace LP.http {
 			];
 		}
 
-		protected errorHandler(e: any): void {
-			if (e instanceof Error) {
-
-			} else if (e instanceof Object && typeof e.result != 'undefined') {
-				LP.tip.json(e.result, e.message, e.tipType);
+		protected errorHandler(e: Exception | TStringable | string | TJson): void {
+			if (e instanceof Exception || typeof e['result'] != 'undefined')
+			{
+				LP.tip.json(e.result, e.message, e.tipType!);
+			} else if (typeof e['toString'] != 'undefined') {
+				LP.tip.toast(e.toString());
+			} else if (typeof e == 'string') {
+				LP.tip.toast(e);
 			}
 		}
 

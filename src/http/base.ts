@@ -1,25 +1,10 @@
 /// <reference path="../lang.ts" />
+/// <reference path="../response/message.ts" />
+/// <reference path="../response/exception.ts" />
 /// <reference path="../sec/encryptor.ts" />
 /// <reference path="../tip/json.ts" />
 
 namespace LP.http {
-
-	export type TMessage = {
-		title?: string,
-		content: string,
-	};
-	export type TTipType = {
-		url: boolean | string,
-		type: string,
-		timeout?: number,
-	}
-	export type TJson = {
-		result: string,
-		message: string | TMessage,
-		data: any,
-		tipType?: TTipType,
-		encrypted?: string,
-	};
 
 	export type TRequestConfig = {
 		method: string,
@@ -29,11 +14,11 @@ namespace LP.http {
 	}
 
 	export enum TIP_MASK {
-		ALERT_CLIENT_ERROR = 1,
+		ALERT_RUNTIME_ERROR = 1,
 		ALERT_SERVER_ERROR = 2,
 		ALERT_SUCCESS = 4,
-		ALERT_ERROR = ALERT_CLIENT_ERROR | ALERT_SERVER_ERROR,
-		ALERT_ALL = ALERT_CLIENT_ERROR | ALERT_SERVER_ERROR | ALERT_SUCCESS,
+		ALERT_ERROR = ALERT_RUNTIME_ERROR | ALERT_SERVER_ERROR,
+		ALERT_ALL = ALERT_RUNTIME_ERROR | ALERT_SERVER_ERROR | ALERT_SUCCESS,
 	}
 
 	export function objectToForm(data: Object): FormData {
@@ -83,12 +68,12 @@ namespace LP.http {
 			return this;
 		}
 
-		public alertClientError(tip: boolean = true): this
+		public alertRuntimeError(tip: boolean = true): this
 		{
 			if (tip)
-				this.tipMask |= TIP_MASK.ALERT_CLIENT_ERROR;
+				this.tipMask |= TIP_MASK.ALERT_RUNTIME_ERROR;
 			else
-				this.tipMask ^= TIP_MASK.ALERT_CLIENT_ERROR;
+				this.tipMask ^= TIP_MASK.ALERT_RUNTIME_ERROR;
 			return this;
 		}
 
@@ -171,23 +156,28 @@ namespace LP.http {
 					}
 					else
 					{
-						return promiseReject(json);
+						return promiseReject(new Exception(json));
 					}
 				}
 				return json;
 			}).catch(e => {
-				if ((this.tipMask & TIP_MASK.ALERT_SERVER_ERROR) && e instanceof Object && typeof e.result != 'undefined')
-					this.errorHandler(e);
-				else if ((this.tipMask & TIP_MASK.ALERT_CLIENT_ERROR) && typeof e['result'] == 'undefined')
-					this.errorHandler(e);
+				if (e instanceof Exception)
+				{
+					if (e.exceptionType == ExceptionType.SERVER && (this.tipMask & TIP_MASK.ALERT_SERVER_ERROR))
+						this.errorHandler(e);
+					else if (e.exceptionType == ExceptionType.RUNTIME && (this.tipMask & TIP_MASK.ALERT_RUNTIME_ERROR))
+						this.errorHandler(e);
 
-				return promiseReject(e);
+					return promiseReject(e);
+				}
+
+				return promiseReject(new Exception(e));
 			});
 		}
 
 		protected abstract requestHandler(config: TRequestConfig, extra: any): Promise<any>;
 		protected abstract decryptHandler(): void;
-		protected abstract errorHandler(e: any): void;
+		protected abstract errorHandler(e: Exception | TStringable | string | TJson): void;
 
 		public get(url: string, data?: any): Promise<any> {
 			return this.request('get', url, data);

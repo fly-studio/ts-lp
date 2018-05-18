@@ -6,24 +6,26 @@ namespace LP.tip {
 
 	export let diy_interface: TInterface | null = null;
 
-	function diy(message: http.TMessage | string, result: string, tipType: http.TTipType): Promise<any>
+	function diy(message: TMessage, result: string, tipType: TTipType): Promise<any>
 	{
-		let _message = formatMessage(message);
-
 		return promiseWrap(() => {
 			if (typeof diy_interface == 'function')
-				return diy_interface(_message, result, tipType);
+				return diy_interface(message, result, tipType);
 			else
-				return window.alert(_message.content.noHTML());
+				return window.alert(message.content.noHTML());
 		});
 	}
 
-	export function json(result: string, message: string | http.TMessage, tipType: http.TTipType): void
+	export function json(result: string, message: string | TMessage, tipType: TTipType): void
 	{
-		if (typeof message == 'undefined' || typeof tipType != 'object') return;
-		else if (typeof message == 'string') message = { content: message };
+		if (typeof message != 'undefined'){
+			if (typeof message == 'string')
+				message = formatMessage(message);
 
-		diy(message, result, tipType);
+			diy(message, result, tipType);
+		}
+
+		if (typeof tipType != 'object') return;
 
 		switch (tipType.type) {
 			case 'redirect':

@@ -41,7 +41,11 @@ namespace LP.http {
 						resolve(json);
 					},
 					error: function (XMLHttpRequest: JQuery.jqXHR, textStatus: JQuery.Ajax.ErrorTextStatus, errorThrown: string) {
-						reject([].slice.call(arguments));
+						if (textStatus == 'error' && XMLHttpRequest instanceof Object && typeof XMLHttpRequest.responseJSON != 'undefined') {
+							reject(new Exception(XMLHttpRequest.responseJSON)); // json 结构，尝试去Exception解析
+						} else {
+							reject(new Exception({XMLHttpRequest, textStatus, errorThrown}));
+						}
 					}
 				};
 
@@ -88,40 +92,37 @@ namespace LP.http {
 			});
 		}
 
-		protected errorHandler(e: any): void
+		protected errorHandler(e: Exception | TStringable | string | TJson): void
 		{
-			if (e instanceof Array)
+			if (e instanceof Exception)
 			{
-				let xhr: JQuery.jqXHR = e[0];
-				let textStatus: JQuery.Ajax.ErrorTextStatus = e[1];
-				switch (textStatus) {
-					case 'timeout':
-						LP.tip.toast(QUERY_LANGUAGE.network_timeout);
-						break;
-					case 'error':
-						if (xhr instanceof Object && typeof xhr.responseJSON != 'undefined')
-						{
-							let json = xhr.responseJSON;
-							if (json instanceof Object && typeof json.result != 'undefined')
-							{
-								LP.tip.json(json.result, json.message, json.tipType);
-							}
-						}
-						break;
-					case 'parsererror':
-						LP.tip.toast(QUERY_LANGUAGE.parser_error);
-						break;
-					//case 'notmodified':
-					case 'abort':
-					default:
-						LP.tip.toast(QUERY_LANGUAGE.server_error);
-						break;
-				}
+				let data = e.getData();
+				if (data && typeof data['XMLHttpRequest'] != 'undefined' && typeof data['textStatus'] != 'undefined'){
+					let textStatus: JQuery.Ajax.ErrorTextStatus = data.textStatus;
+					switch (textStatus) {
+						case 'timeout':
+							LP.tip.toast(QUERY_LANGUAGE.network_timeout);
+							break;
+						case 'parsererror':
+							LP.tip.toast(QUERY_LANGUAGE.parser_error);
+							break;
+						case 'notmodified':
+						case 'error':
+						case 'abort':
+						default:
+							LP.tip.toast(QUERY_LANGUAGE.server_error);
+							break;
+					}
+				} else
+					LP.tip.json(e.getResult(), e.getMessage(), e.getTipType()!);
 
-			} else if (e instanceof Object && typeof e.result != 'undefined') {
-				LP.tip.json(e.result, e.message, e.tipType);
+			} else if (typeof e['result'] != 'undefined') {
+				LP.tip.json(e['result'], e['message'], e['tipType']);
+			} else if (typeof e['toString'] != 'undefined') {
+				LP.tip.toast(e.toString());
+			} else if (typeof e == 'string') {
+				LP.tip.toast(e);
 			}
-
 		}
 
 		public static get(url: string, data?: any): Promise<any> {

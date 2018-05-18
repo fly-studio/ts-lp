@@ -1,10 +1,10 @@
 /// <reference path="../polyfill/string.ts" />
+/// <reference path="../response/message.ts" />
+/// <reference path="../response/exception.ts" />
 /// <reference path="../http/base.ts" />
 /// <reference path="../lang.ts" />
 
 namespace LP.tip {
-
-	export type TMessage = http.TMessage;
 
 	export type TInterface = (message: TMessage, ...args: any[]) => Promise<any>;
 
@@ -12,11 +12,6 @@ namespace LP.tip {
 	export let alert_interface: TInterface|null = null;
 	export let confirm_interface: TInterface|null = null;
 	export let prompt_interface: TInterface|null = null;
-
-	export function formatMessage(message: TMessage| string): TMessage
-	{
-		return !(message instanceof Object) ? { content: message } : message;
-	}
 
 	export function toast(message: TMessage|string, timeout: number = 1000): Promise<any>
 	{

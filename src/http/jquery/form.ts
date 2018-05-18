@@ -1,7 +1,14 @@
 if (jQuery)
 {
 	jQuery.fn.extend({
-		query: function (callback: Function | string, tipMask: number = LP.http.TIP_MASK.ALERT_ALL) {
+		query: function (callback: Function | string, failCallback?: Function, tipMask?: number) {
+			if (tipMask == null && typeof failCallback == 'number')
+			{
+				tipMask = failCallback;
+				failCallback = undefined;
+			} else if (tipMask == null) { // default value
+				tipMask = LP.http.TIP_MASK.ALERT_ALL
+			}
 
 			return (this as JQuery).each(function() {
 
@@ -62,16 +69,15 @@ if (jQuery)
 							data = _formData;
 						}
 
-						return LP.http.jQueryAjax.getInstance().alertMask(tipMask).request(method, url, data).then(json => {
-
+						return LP.http.jQueryAjax.getInstance().alertMask(tipMask!).request(method, url, data).then((json:any) => {
 							if (typeof callback != 'undefined' && jQuery.isFunction(callback))
-								callback.call($this, json);
-
+								return callback.call($this, json);
+						}).catch(e => {
+							if (typeof failCallback != 'undefined' && jQuery.isFunction(failCallback))
+								return failCallback.call($this, e);
 						}).finally(() => {
-
 							jQuery('.query-loading').remove();
 							$doms.prop('disabled', false).removeAttr('disabled');
-
 						});
 					};
 

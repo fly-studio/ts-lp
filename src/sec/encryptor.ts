@@ -1,4 +1,5 @@
 /// <reference path="rsa.ts" />
+/// <reference path="../response/message.ts" />
 /// <reference path="../polyfill/serialize.ts" />
 
 namespace LP.sec {
@@ -19,11 +20,11 @@ namespace LP.sec {
 			return this.actived() ? ssl.rsa.public : '';
 		}
 
-		private jsonError(content: string): http.TJson {
+		private jsonError(content: string): TJson {
 			return { result: 'error', message: { title: QUERY_LANGUAGE.error, content }, data: null };
 		}
 
-		public decrypt(json: http.TJson): http.TJson {
+		public decrypt(json: TJson): TJson {
 			if (typeof json != 'undefined'
 				&& json instanceof Object
 				&& typeof json.result != 'undefined'
