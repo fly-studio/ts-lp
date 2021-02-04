@@ -1,12 +1,11 @@
 namespace LP.http {
-	export class axiosAjax extends Base {
+	export class axiosAjax extends LP.http.Base {
 
 		protected instance: AxiosInstance;
 
 		constructor(baseURL?: string, timeout: number = 20000)
 		{
 			super();
-
 			this.instance = axios.create({
 				baseURL: baseURL == null ? '' : baseURL,
 				timeout: timeout,
@@ -31,6 +30,10 @@ namespace LP.http {
 					return data;
 				}],
 			});
+		}
+
+		public static getInstance(): axiosAjax {
+			return new this() as axiosAjax;
 		}
 
 		protected requestHandler(config: TRequestConfig, extra: any): AxiosPromise<any>
@@ -72,9 +75,10 @@ namespace LP.http {
 		}
 
 		protected errorHandler(e: Exception | TStringable | string | TJson): void {
-			if (e instanceof Exception || typeof e['result'] != 'undefined')
+			if (e instanceof Exception || typeof e['result'] == 'undefined')
 			{
-				LP.tip.json(e.result, e.message, e.tipType!);
+				let e1 = e as Exception;
+				LP.tip.json(e1.result, e1.message, e1.tipType!);
 			} else if (typeof e['toString'] != 'undefined') {
 				LP.tip.toast(e.toString());
 			} else if (typeof e == 'string') {

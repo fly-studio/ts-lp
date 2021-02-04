@@ -33,6 +33,7 @@ namespace LP.http {
 		return formData;
 	}
 
+
 	export abstract class Base {
 		protected commonHeaders: any;
 		protected headers: any;
@@ -50,10 +51,6 @@ namespace LP.http {
 			};
 			this.headers = {};
 			this.tipMask = 0;
-		}
-
-		public static getInstance(): Base {
-			return new this;
 		}
 
 		public alertMask(mask: number): this

@@ -40,22 +40,25 @@ namespace LP {
 				this.exceptionType = ExceptionType.RUNTIME;
 			} else if (typeof result == "object") {
 				if (result instanceof Exception || typeof result['exceptionType'] != 'undefined') {
-					this.$json = result.$json;
-					this.stack = result.stack;
-					this.fileName = result.fileName;
-					this.lineNumber = result.lineNumber;
-					this.columnNumber = result.columnNumber;
-					this.exceptionType = result.exceptionType;
+					let _result = result as Exception
+					this.$json = _result.$json;
+					this.stack = _result.stack;
+					this.fileName = _result.fileName;
+					this.lineNumber = _result.lineNumber;
+					this.columnNumber = _result.columnNumber;
+					this.exceptionType = _result.exceptionType;
 				} else if (result instanceof Error || typeof result['stack'] != 'undefined') {
-					this.stack = result.stack;
-					this.fileName = result.fileName;
-					this.lineNumber = result.lineNumber;
-					this.columnNumber = result.columnNumber;
+					let _result = result as Exception
+
+					this.stack = _result.stack;
+					this.fileName = _result.fileName;
+					this.lineNumber = _result.lineNumber;
+					this.columnNumber = _result.columnNumber;
 					this.exceptionType = ExceptionType.RUNTIME;
 					this.$json = {
 						result: 'error',
-						message: formatMessage(result.message),
-						data: result.stack,
+						message: formatMessage(_result.message),
+						data: _result.stack,
 					};
 				} else if (typeof result == 'object' && typeof result['result'] != 'undefined') {
 					this.$json = result as TJson;

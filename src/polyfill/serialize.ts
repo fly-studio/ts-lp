@@ -183,10 +183,10 @@ function unserialize(data: string): any
 	let error = function (type: string, msg: string, filename?: string, line?: string): void {
 		switch (type) {
 			case 'SyntaxError':
-				throw new SyntaxError(msg, filename, line);
+				throw new SyntaxError(msg);
 			case 'Error':
 			default:
-				throw new Error(msg, filename, line);
+				throw new Error(msg);
 		}
 	};
 	let readUntil = function (data: string, offset: number, stopchr: string): TRes {

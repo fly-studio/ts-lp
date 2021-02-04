@@ -13,5 +13,5 @@ namespace LP {
 
 	export let baseuri = _baseuri;
 
-	if (jQuery) jQuery['baseuri'] = _baseuri;
+	if (typeof jQuery != 'undefined') jQuery['baseuri'] = _baseuri;
 }

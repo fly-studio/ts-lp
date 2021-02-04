@@ -50,7 +50,7 @@ if (!Promise.prototype.finally)
 	};
 }
 
-function promiseWrap(callback: Function, ...args: any[]): Promise<any> {
+function promiseWrap(this: any, callback: Function, ...args: any[]): Promise<any> {
 	return Promise.resolve(callback.call(this, ...args));
 }
 /**

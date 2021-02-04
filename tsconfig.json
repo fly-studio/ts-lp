@@ -14,11 +14,11 @@
 			"dom",
 			"es6",
 			"es7"
-		]
+		],
+		"types": ["jquery", "axios"]
 	},
 	"files": [
-		"typings/jquery.d.ts",
-		"../axios/bin/axios.d.ts",
+		"typings/axios.d.ts"
 	],
 	"include": [
 		"src"

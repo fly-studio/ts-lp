@@ -1,3 +1,4 @@
+
 namespace LP.http {
 
 	export class jQueryAjax extends Base {
@@ -10,6 +11,10 @@ namespace LP.http {
 				headers: this.commonHeaders,
 				timeout
 			});
+		}
+
+		public static getInstance(): jQueryAjax {
+			return new this() as jQueryAjax;
 		}
 
 		protected requestHandler(config: TRequestConfig, extra: any): Promise<any>
@@ -106,7 +111,7 @@ namespace LP.http {
 						case 'parsererror':
 							LP.tip.toast(QUERY_LANGUAGE.parser_error);
 							break;
-						case 'notmodified':
+						//case 'notmodified':
 						case 'error':
 						case 'abort':
 						default:

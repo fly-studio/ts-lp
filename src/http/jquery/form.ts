@@ -1,4 +1,4 @@
-if (jQuery)
+if (typeof jQuery != 'undefined')
 {
 	jQuery.fn.extend({
 		query: function (callback: Function | string, failCallback?: Function, tipMask?: number) {
